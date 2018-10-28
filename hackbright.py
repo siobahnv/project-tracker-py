@@ -86,7 +86,8 @@ def get_grade_by_github_title(github, title):
 
     row = db_cursor.fetchone()
 
-    print("Title: {}\nGrade: {}".format(row[0], row[1]))
+    # print("Title: {}\nGrade: {}".format(row[0], row[1]))
+    print("{}".format(row))
 
 
 def assign_grade(github, title, grade):
@@ -103,6 +104,44 @@ def assign_grade(github, title, grade):
 
     print(f"Successfully assigned grade: {grade} for {github} in {title}.")
 
+def add_project(title, description, max_grade):
+	"""Add a project, including the project title, description, and maximum grade."""
+
+	QUERY = """
+		INSERT INTO projects (title, description, max_grade)
+		VALUES (:title, :description, :max_grade)
+	"""
+
+	db.session.execute(QUERY, {'title': title,
+								'description': description,
+								'max_grade': max_grade})
+
+	db.session.commit()
+
+	print(f"Successfully added {title} with {max_grade}.")
+
+def find_all_grades (github):
+	"""Find all grades by github name"""
+
+	QUERY = """
+		SELECT student_github, project_title, grade
+		FROM grades
+		WHERE student_github = :github
+		"""
+
+
+	db_cursor = db.session.execute(QUERY, {'github': github})
+
+	rows = db_cursor.fetchall()
+
+	print(type(rows))
+
+	for row in rows:
+		print("Github: {}, Title: {}, Grade: {}".format(row[0], row[1], row[2]))
+
+	# print("{}".format(row[0]))
+
+
 
 def handle_input():
     """Main loop.
@@ -115,7 +154,7 @@ def handle_input():
 
     while command != "quit":
         input_string = input("HBA Database> ")
-        tokens = input_string.split()
+        tokens = input_string.split("|")
         command = tokens[0]
         args = tokens[1:]
 
@@ -138,6 +177,14 @@ def handle_input():
         elif command == "assign_grade":
         	github, title, grade = args
         	assign_grade(github, title, grade)
+
+        elif command == "assign_project":
+        	title, description, max_grade = args
+        	add_project(title, description, max_grade)
+
+        elif command == "find_all_grades":
+        	github = args[0]
+        	find_all_grades(github)
 
         else:
             if command != "quit":
